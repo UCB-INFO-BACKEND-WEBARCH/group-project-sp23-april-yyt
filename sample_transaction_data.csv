@@ -1,0 +1,15 @@
+date,merchant,category,amount
+2023-04-01,ABC Supermarket,Groceries,58.25
+2023-04-02,XYZ Gas Station,Transportation,42.17
+2023-04-03,Coffee Haven,Dining,6.99
+2023-04-04,Movie Magic Theater,Entertainment,12.5
+2023-04-05,Amazon,Online Shopping,87.99
+2023-04-06,ATM Withdrawal,Cash Withdrawal,40.0
+2023-04-07,XYZ Pharmacy,Healthcare,28.75
+2023-04-08,ABC Electronics,Electronics,349.99
+2023-04-09,XYZ Gym,Fitness,24.99
+2023-04-10,Pizza Palace,Dining,19.99
+2023-04-11,XYZ Bookstore,Books,54.5
+2023-04-12,ATM Withdrawal,Cash Withdrawal,60.0
+2023-04-13,ABC Clothing,Apparel,89.99
+2023-04-14,XYZ Home Improvement,Home,124.75
