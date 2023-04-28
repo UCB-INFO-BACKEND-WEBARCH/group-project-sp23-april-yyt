@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:6.2.4-alpine
+    container_name: redis
+    ports:
+      - 6379:6379
+
+  flask:
+    build: .
+    ports:
+      - 5000:5000
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
