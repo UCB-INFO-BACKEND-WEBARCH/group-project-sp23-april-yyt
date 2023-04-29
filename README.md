@@ -19,3 +19,11 @@ Using ChatGPT API, we plan to generate financial advice indluding:
 
 #### - Amazon API
 We plan to make a budgeting function for users. By integrating with Amazon's API, we allow users to track their spending on Amazon and set budget limits for their purchases.
+
+
+### USAGE
+Activate environment:
+` . env/bin/activate`
+
+To run the server:
+`python run.py`
