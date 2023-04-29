@@ -55,6 +55,7 @@ def save_answers():
 
 
     #return render_template('form.html')
+
 def generate_prompt(user_id):
     """
     Generates a prompt message for a user based on the user's investment goal and personal financial information stored in a Redis database.
@@ -90,12 +91,32 @@ def generate_prompt(user_id):
         house_price = float(db.hget(user_id, 'house_price').decode())
         house_settlement = int(db.hget(user_id, 'house_settlement').decode())
         house_loan_years = int(db.hget(user_id, 'house_loan_years').decode())
+<<<<<<< HEAD
         prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to buy a {house_price} house in {location} with a {house_settlement}% settlement and {house_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice?"
     elif investment_goal == 'car':
         car_price = float(db.hget(user_id, 'car_price').decode())
         car_settlement = int(db.hget(user_id, 'car_settlement').decode())
         car_loan_years = int(db.hget(user_id, 'car_loan_years').decode())
         prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to buy a {car_price} house in {location} with a {car_settlement}% settlement and {car_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice?"
+=======
+        prompt = f"""
+        Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. 
+        I am spending {rent} on rent and utilities, {food} on food & groceries, {fitness} on fitness and health, {travel} on travel, {education} on education, 
+        and {entertainment} on entertainment each month. My saving goal is to buy a {house_price} house in {location} with a {house_settlement}% 
+        settlement and {house_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. 
+        I have my preferred investment types as {', '.join(preferred_investment_types)}. Can you give me personal financial investment advice?
+        """
+    elif investment_goal == 'car':
+        car_price = float(db.hget(user_id, 'car_price').decode())
+        car_settlement = int(db.hget(user_id, 'car_settlement').decode())
+        car_load_years = int(db.hget(user_id, 'car_loan_years').decode())
+        prompt = f"""
+        Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. 
+        I am spending {rent} on rent and utilities, {food} on food & groceries, {fitness} on fitness and health, {travel} on travel, {education} on education, 
+        and {entertainment} on entertainment each month. My saving goal is to buy a {car_price} house in {location} with a {car_settlement}% 
+        settlement and {car_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. 
+        I have my preferred investment types as {', '.join(preferred_investment_types)}. Can you give me personal financial investment advice?"""
+>>>>>>> 9c342239bae186c1acc79119af84b1a40179a0fe
     elif investment_goal == 'retirement':
         retirement_year = db.hget(user_id, 'retirement_year').decode()
         retirement_month_income = db.hget(user_id, 'retirement_monthly_income').decode()
