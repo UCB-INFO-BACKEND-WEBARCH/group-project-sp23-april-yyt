@@ -137,6 +137,11 @@
         </div>
        
   
-  <button type="submit" class="btn btn-primary">Submit</button>
-  
-              
+        <form action="/submit" method="post">
+            <!-- Your form inputs go here -->
+            <label for="user_id">User ID:</label>
+            <input type="text" id="user_id" name="user_id" required>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </body>
+</html>

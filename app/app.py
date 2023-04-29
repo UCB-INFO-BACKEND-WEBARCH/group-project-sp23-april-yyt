@@ -1,14 +1,20 @@
-from flask import Flask, request, render_template
+from flask import render_template, request, redirect, url_for, Flask
+from app import app
 import redis
 import os
 import openai
 from dotenv import load_dotenv
+
 load_dotenv()
-app = Flask(__name__)
 db = redis.Redis(host='localhost', port=6379, db=0)
 
+@app.route('/')
+def index():
+    return render_template('form.html')
+
 @app.route('/submit_form', methods=['POST'])
-def save_answers():
+def submit():
+
     """
     Saves user data from submitted form to a Redis database based on the information provided in a POST request.
 
@@ -23,7 +29,7 @@ def save_answers():
     """
     if request.method == 'POST':
         # BBBBBNNNNNN: User credit card history in csv 
-        credit_card_histroy = request.form['cc-upload']
+        # credit_card_histroy = request.form['cc-upload']
         # Save user data to Redis database
         user_id = request.form['user_id']
         db.hset(user_id, 'age', request.form['age'])
@@ -49,12 +55,8 @@ def save_answers():
         elif request.form['investment_goal'] == 'college':
             db.hset(user_id, 'total_savings', request.form['total_savings'])
 
-    return render_template('success.html', user_id=user_id)
+    return redirect(url_for('success'))
 
-
-
-
-    #return render_template('form.html')
 
 def generate_prompt(user_id):
     """
@@ -74,31 +76,31 @@ def generate_prompt(user_id):
     goal_achieve_time = (db.hget(user_id, 'goal_achievement_time').decode())
 
     #### BN need to store this in redis as well ### 
-    Rent = 3000
-    Food = 1000
-    Fitness = 300
-    Travel = 500
-    Education = 600
-    Entertainment = 400
+    rent = 3000
+    food = 1000
+    fitness = 300
+    travel = 500
+    education = 600
+    entertainment = 400
     ##### 
 
     investment_proportion = int(db.hget(user_id, 'investment_proportion').decode())
     risk_tolerance = db.hget(user_id, 'risk_tolerance').decode()
-    investment_types = db.hget(user_id, 'investment_type').decode()
+    preferred_investment_types = db.hget(user_id, 'investment_type').decode()
 
     # Check user's investment goal and compose prompt accordingly
     if investment_goal == 'house':
         house_price = float(db.hget(user_id, 'house_price').decode())
         house_settlement = int(db.hget(user_id, 'house_settlement').decode())
         house_loan_years = int(db.hget(user_id, 'house_loan_years').decode())
-<<<<<<< HEAD
+# <<<<<<< HEAD
         prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to buy a {house_price} house in {location} with a {house_settlement}% settlement and {house_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice?"
     elif investment_goal == 'car':
         car_price = float(db.hget(user_id, 'car_price').decode())
         car_settlement = int(db.hget(user_id, 'car_settlement').decode())
         car_loan_years = int(db.hget(user_id, 'car_loan_years').decode())
         prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to buy a {car_price} house in {location} with a {car_settlement}% settlement and {car_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice?"
-=======
+# =======
         prompt = f"""
         Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. 
         I am spending {rent} on rent and utilities, {food} on food & groceries, {fitness} on fitness and health, {travel} on travel, {education} on education, 
@@ -116,7 +118,7 @@ def generate_prompt(user_id):
         and {entertainment} on entertainment each month. My saving goal is to buy a {car_price} house in {location} with a {car_settlement}% 
         settlement and {car_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. 
         I have my preferred investment types as {', '.join(preferred_investment_types)}. Can you give me personal financial investment advice?"""
->>>>>>> 9c342239bae186c1acc79119af84b1a40179a0fe
+# >>>>>>> 9c342239bae186c1acc79119af84b1a40179a0fe
     elif investment_goal == 'retirement':
         retirement_year = db.hget(user_id, 'retirement_year').decode()
         retirement_month_income = db.hget(user_id, 'retirement_monthly_income').decode()
@@ -171,6 +173,12 @@ def get_result_from_GPT(user_id):
     else:
         return 'Unable to complete prompt', 500
 
+
+@app.route('/success')
+def success():
+    return render_template('success.html')
+
+
 @app.route('/get_response', methods=['GET'])
 def chat_gpt_result(user_id):
     """
@@ -188,17 +196,3 @@ def chat_gpt_result(user_id):
         return 'Unable to complete prompt', 500
     elif status_code == 200:
         return text
-
-
-
-
-
-
-
-
-
-
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
