@@ -80,7 +80,7 @@ def load_and_clean_csv(path: str = None, df: str = None):
 
     Your task is to classify each of these into one of the following categories:
 
-    ['rent and utilities', 'food', 'fitness', 'travel', 'education', 'entertainment']
+    ['rent', 'food', 'fitness', 'travel', 'education', 'entertainment']
 
     If the expense does not fall into one of those categories, return 'other'.
 
