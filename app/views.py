@@ -8,6 +8,7 @@ from job_tasks import analyze_spending_income, tasks
 from tasks import analyze_spending_income
 from celery.result import AsyncResult
 from celery_config import app
+from parse_df import get_monthly_expenses
 
 
 load_dotenv()
@@ -33,8 +34,21 @@ def submit():
     None
     """
     if request.method == 'POST':
-        # BBBBBNNNNNN: User credit card history in csv 
-        # credit_card_histroy = request.form['cc-upload']
+
+        # Grab file upload and user_id
+        cc_history =  request.form['cc-upload']
+        user_id = request.form['user_id']
+
+        # Extract monthly expenses 
+        monthly_expenses = get_monthly_expenses(cc_history)
+        
+        # Insert to redis DB
+        expense_types = ['rent', 'food', 'fitness', 'travel', 'education', 'entertainment']
+        for expense_type in expense_type: 
+            val = monthly_expenses.get(expense_type)
+            db.hset(user_id, expense_type, val)
+
+
         # Save user data to Redis database
         user_id = request.form['user_id']
         db.hset(user_id, 'age', request.form['age'])

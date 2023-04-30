@@ -40,22 +40,16 @@ def clean_text(text: str):
     
     # Remove long valeus 
     pattern = r'\s[PS]\d+\s'
-    
     text = re.sub(pattern, '', text)
+
     
-    
-#     # Remove number stuff 
-#     text = text.replace("#", "")
-#     pattern = r'\b\d{3,}\b'
-#     text = re.sub(pattern, '', text)
-    
-#     # Strip 
+    # Strip 
     text = text.strip()
 
 
     return text
 
-def load_and_clean_csv(path: str): 
+def load_and_clean_csv(path: str = None, df: str = None): 
     
     """
     Loads a CSV and tries to remove information not about the vendor
@@ -66,14 +60,19 @@ def load_and_clean_csv(path: str):
         - prompt (str): the completed prompt template
     """
     
-    # Load CSV
-    df = pd.read_csv('app/static/checking_data.csv')[['Date', 'Amount', 'Expense']]
+    # Load CSV if need to 
+    if (path):
+        df = pd.read_csv('app/static/checking_data.csv')[['Date', 'Amount', 'Expense']]
     
     # Clean text
     df['Expense'] = df['Expense'].apply(clean_text)
     
     # Make columns lowercase
     df.columns = df.columns.str.lower()
+
+    # Add column for month
+    df['month'] = pd.to_datetime(df['date']).dt.month
+
 
     
     prompt = """
@@ -101,5 +100,29 @@ def load_and_clean_csv(path: str):
 def get_monthly_expenses(df): 
     
     """
-    G
+    Gets the monthly expenses for a given df
+    Params: 
+        - df (pd.DataFrame): the expenses df
+    Returns: 
+        - monthly_expenses (dict): dictionary of monthly expenses by category
     """
+
+    # Load in the data and generate prompt
+    df, prompt = load_and_clean_csv(df = df)
+
+    # Run query on gpt-3.5-turb 
+    labels = openai.ChatCompletion.create(model = 'gpt-3.5-turbo',
+                                          messages = [
+                                            {"role": "user", "content": prompt},
+                                          ])
+    
+    # Convert the string of lists to list 
+    labels = eval(labels['choices'][0]['message']['content'])
+
+    # Add predictions to df
+    df['label'] = list(labels.values())
+
+    # Double groupby to get monthly expenses 
+    monthly_expenses = df.groupby(['category', 'month'])['amount'].sum().groupby('category').mean().to_dict()
+
+    return monthly_expenses
