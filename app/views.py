@@ -22,7 +22,7 @@ from io import StringIO
 openai.api_key = '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'
 
 load_dotenv()
-db = redis.Redis(host='localhost', port=6379, db=0)
+
 
 def clean_text(text: str): 
     
@@ -70,7 +70,7 @@ def load_and_clean_csv(path: str = None, df: str = None):
         - df (pd.DataFrame): the cleaned pandas df
         - prompt (str): the completed prompt template
     """
-
+    db = redis.Redis(host='localhost', port=6379, db=0)
     # Parse the CSV file
     csv_data = db.get('uploaded_csv').decode('utf-8')
     df = pd.read_csv(StringIO(csv_data))[['Date', 'Amount', 'Expense']]
@@ -168,6 +168,7 @@ def submit():
     Raises:
     None
     """
+    db = redis.Redis(host='localhost', port=6379, db=0)
     if request.method == 'POST':
 
         # Grab file upload and user_id
@@ -228,6 +229,7 @@ def generate_prompt(user_id):
     Returns:
     - prompt: a string representing the generated prompt message for the user.
     """
+    db = redis.Redis(host='localhost', port=6379, db=0)
     age = db.hget(user_id, 'age').decode()
     occupation = db.hget(user_id, 'occupation').decode()
     location = db.hget(user_id, 'location').decode()
@@ -254,29 +256,31 @@ def generate_prompt(user_id):
     investment_proportion = int(db.hget(user_id, 'investment_proportion').decode())
     risk_tolerance = db.hget(user_id, 'risk_tolerance').decode()
     investment_types = db.hget(user_id, 'investment_type').decode()
-
+    with open('app/prompt_template.txt', 'r') as file:
+        template = file.read()
     # Check user's investment goal and compose prompt accordingly
     if investment_goal == 'house':
         house_price = float(db.hget(user_id, 'house_price').decode())
         house_settlement = int(db.hget(user_id, 'house_settlement').decode())
         house_loan_years = int(db.hget(user_id, 'house_loan_years').decode())
-        prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to buy a {house_price} house in {location} with a {house_settlement}% settlement and {house_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice?"
+        prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to buy a {house_price} house in {location} with a {house_settlement}% settlement and {house_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice"
+        
     elif investment_goal == 'car':
         car_price = float(db.hget(user_id, 'car_price').decode())
         car_settlement = int(db.hget(user_id, 'car_settlement').decode())
         car_loan_years = int(db.hget(user_id, 'car_loan_years').decode())
-        prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to buy a {car_price} house in {location} with a {car_settlement}% settlement and {car_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice?"
+        prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to buy a {car_price} house in {location} with a {car_settlement}% settlement and {car_loan_years} years loan. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice"
     elif investment_goal == 'retirement':
         retirement_year = db.hget(user_id, 'retirement_year').decode()
         retirement_month_income = db.hget(user_id, 'retirement_monthly_income').decode()
-        prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to save money for retirement at the age of {retirement_year}. My estimated monthly income after retirement needs to be ${retirement_month_income}. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice?"
+        prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to save money for retirement at the age of {retirement_year}. My estimated monthly income after retirement needs to be ${retirement_month_income}. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice"
     
 
     elif investment_goal == 'college':
         saving_for_college = db.hget(user_id, 'total_savings').decode()
-        prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to save money for attending college. my estimated total saving need to be ${saving_for_college}. I have {goal_achieve_time} years left to achieve my goal. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice?"
+        prompt = f"Currently, I am a {age}-year new graduate working as a {occupation} living in {location} earning a {annual_income} annual income. I am spending {Rent} on rent and utilities, {Food} on food & groceries, {Fitness} on fitness and health, {Travel} on travel, {Education} on education, and {Entertainment} on entertainment each month. My saving goal is to save money for attending college. my estimated total saving need to be ${saving_for_college}. I have {goal_achieve_time} years left to achieve my goal. I want to invest {investment_proportion}% of my income, and my risk tolerance is {risk_tolerance}. I have my preferred investment types as {', '.join(investment_types)}. Can you give me personal financial investment advice"
     
-    return prompt
+    return prompt + "the same format as this: " + template 
 
 def get_result_from_GPT(user_id):
     """
@@ -294,26 +298,18 @@ def get_result_from_GPT(user_id):
     Raises:
         HTTPError: If the request to the OpenAI API fails.
     """
-    CHATGPT_API_ENDPOINT = 'https://api.openai.com/v1/engines/davinci-codex/completions'
-    api_key = os.environ.get('CHATGPT_API_KEY')
+    
     prompt = generate_prompt(user_id)
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}'
-    }
-
-    data = {
-        'prompt': prompt,
-        'max_tokens': 1024,
-        'temperature': 0.7,
-        'n': 1,
-        'stop': '\n'
-    }
-
-    response = requests.post(CHATGPT_API_ENDPOINT, headers=headers, json=data)
-    response.raise_for_status()
-    result = response.json()
-
+    # Run query on gpt-3.5-turb 
+    result = openai.ChatCompletion.create(model = 'gpt-3.5-turbo',
+                                          messages = [
+                                            {"role": "user", "content": prompt},
+                                          ],
+                                          temperature = 0)
+    
+    # Convert the string of lists to list 
+    result = result['choices'][0]['message']['content']
+    
     # # using asynctasks to check the status of the tasks
 
     # # Call the task asynchronously
@@ -333,10 +329,8 @@ def get_result_from_GPT(user_id):
     # else:
     #     print("Task is still running or pending.")
 
-    completions = result.get('choices', [])
-    if completions:
-        generated_text = completions[0]['text']
-        return generated_text, 200
+    if result:
+        return result, 200
     else:
         return 'Unable to complete prompt', 500
 
