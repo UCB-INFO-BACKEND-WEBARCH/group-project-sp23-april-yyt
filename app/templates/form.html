@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Investment Goals Form</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h2>Investment Goals Form</h2>
+    <form method="POST" action="/submit_form" enctype="multipart/form-data">
+        <!-- Demographic questions -->
+        <h3>Demographic Information</h3>
+        <div class="form-group">
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="location">location:</label>
+            <input type="number" id="location" name="location" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="occupation">Occupation:</label>
+            <input type="text" id="occupation" name="occupation" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="annual_income">Annual Income:</label>
+            <input type="number" id="income" name="income" class="form-control">
+        </div>
+
+        <!-- Credit card statement upload -->
+        <h3>Credit Card Statement Upload</h3>
+        <div class="form-group">
+            <label for="cc-upload">Upload your previou months of credit card statement:</label>
+            <input type="file" id="cc-upload" name="cc_upload" accept="application/csv" multiple class="form-control-file">
+        </div>
+
+        <!-- Investment goals questions -->
+        <h3>Investment Goals</h3>
+        <div class="form-group">
+            <label for="goal">What is your investment goal?</label>
+            <select id="goal" name="goal" class="form-control">
+                <option value="house">Buying a house</option>
+                <option value="car">Buying a car</option>
+                <option value="retirement">Saving for retirement</option>
+                <option value="college">Saving for college</option>
+            </select>
+        </div>
+
+        <!-- Investment preference questions -->
+        <div class="form-group">
+            <label for="time">When do you want to achieve your goal?:</label>
+            <input type="number" class="form-control" id="time" name="time" placeholder="For example: Within 5 year">
+        </div>
+        <div class="form-group">
+            <label for="allocation_proportion">Allocation Proportion:</label>
+            <input type="number" class="form-control" id="allocation_proportion" name="allocation_proportion" placeholder="Enter proportion to allocate to investment">
+        </div>
+        <div class="form-group">
+            <label for="risk_tolerance">Risk Tolerance:</label>
+            <select class="form-control" id="risk_tolerance" name="risk_tolerance">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="investment_types">Preferred Investment Types:</label>
+            <select multiple class="form-control" id="investment_types" name="investment_types">
+            <option value="stock">Stock</option>
+            <option value="bond">Bond</option>
+            <option value="mutual_fund">Mutual Fund</option>
+            <option value="derivatives">Derivatives</option>
+            </select>
+        </div>
+
+        <!-- Follow-up questions based on selected goal -->
+        <!-- House goal -->
+        <div id="house" class="goal-questions">
+            <div class="form-group">
+                <label for="house-amount">How much do you need for the house?</label>
+                <input type="number" id="house-amount" name="house_amount" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="house-settlement">What is the settlement amount?</label>
+                <input type="number" id="house-settlement" name="house_settlement" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="house-loan-years">How many years of loan do you want?</label>
+                <input type="number" id="house-loan-years" name="house_loan_years" class="form-control">
+            </div>
+        </div>
+
+        <!-- Car goal -->
+        <div id="car" class="goal-questions">
+            <div class="form-group">
+                <label for="car_price">Car Price:</label>
+                <input type="number" class="form-control" id="car_price" name="car_price" placeholder="Enter car price">
+              </div>
+              <div class="form-group">
+                <label for="car_settlement">Settlement:</label>
+                <input type="number" class="form-control" id="car_settlement" name="car_settlement" placeholder="Enter settlement amount">
+              </div>
+              <div class="form-group">
+                <label for="car_loan_years">Years of Loan:</label>
+                <input type="number" class="form-control" id="car_loan_years" name="car_loan_years" placeholder="Enter years of loan">
+              </div>
+        <!-- Retirement Goal -->
+        <div class="form-group">
+            <label for="retirement_year">Retirement Age:</label>
+            <input type="number" class="form-control" id="retirement_year" name="retirement_year" placeholder="Enter retirement age">
+        </div>
+        
+        <div class="form-group">
+            <label for="retirement_income">Retirement Monthly Income:</label>
+            <input type="number" class="form-control" id="retirement_income" name="retirement_income" placeholder="Enter desired retirement monthly income">
+        </div>
+  
+        <!-- College Savings Goal -->
+        <!-- <div class="form-group">
+            <label for="total_savings">How many years do you have until college?:</label>
+            <input type="number" class="form-control" id="years_until" name="years_until" placeholder="Enter estimated years left until college">
+        </div> -->
+        <div class="form-group">
+            <label for="total_savings">Total Savings:</label>
+            <input type="number" class="form-control" id="total_savings" name="total_savings" placeholder="Enter estimated total savings for college">
+        </div>
+       
+  
+        <form action="/submit" method="post">
+            <!-- Your form inputs go here -->
+            <label for="user_id">User ID:</label>
+            <input type="text" id="user_id" name="user_id" required>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </body>
+</html>

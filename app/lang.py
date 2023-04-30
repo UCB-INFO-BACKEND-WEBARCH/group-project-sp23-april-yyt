@@ -11,7 +11,6 @@ from langchain.agents import create_pandas_dataframe_agent
 # Setup the OpenAI Key <- this is my personal account soo  ya
 os.environ["OPENAI_API_KEY"] = "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"
 
-
 def create_agent(path: str): 
 
     """
@@ -33,11 +32,26 @@ def create_agent(path: str):
 
     return agent
 
-# Create agent
-agent = create_agent(path = 'sample_transaction_data.csv')
+# # Create agent
+# agent = create_agent(path = "app/static/checking_data.csv")
 
-# Ask sample question
-question = "What is my average expense? What is my median expense?"
-answer = agent.run(question)
-print(answer)
+# # Ask sample question
+# question = """
+# What is the sum of food expenses in the table?
+# """
+# answer = agent.run(question)
+# print(answer)
 
+from langchain.document_loaders import PyPDFLoader
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.chains.question_answering import load_qa_chain
+
+loader = PyPDFLoader("app/static/bank_statement.pdf")
+documents = loader.load()
+
+chain = load_qa_chain(llm = OpenAI(), chain_type="map_reduce")
+query = "What was the total rent expense from the statement?"
+answer = chain.run(input_documents = documents, question = query)
+
+print('\n\n\nQuestion: ', query)
+print('\n\nAnswer:', answer)
