@@ -1,14 +1,5 @@
-import os
-from celery import Celery
-# from tasks import get_monthly_expenses
-
-broker_url = os.environ.get("CELERY_BROKER_URL"),
-res_backend = os.environ.get("CELERY_RESULT_BACKEND")
-
-celery_app = Celery(name='worker',
-                    broker=broker_url,
-                    result_backend=res_backend)
-
+# if completed: status, render success/viz page
+# if not: status, in progress 
 
 # tasks.py
 
@@ -25,17 +16,8 @@ import openai
 openai.api_key = os.environ.get('CHATGPT_API_KEY')
 from io import StringIO
 import requests
-from flask import render_template, request, redirect, url_for, Flask, jsonify
-from app import app
-import redis
-import os
-import openai
-from dotenv import load_dotenv
-# import parse_df
 
 openai.api_key = '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'
-load_dotenv()
-db = redis.Redis(host='localhost', port=6379, db=0)
 
 def clean_text(text: str): 
     
@@ -161,8 +143,3 @@ def get_monthly_expenses(df):
     monthly_expenses = df.groupby(['category', 'month'])['amount'].sum().groupby('category').mean().to_dict()
 
     return monthly_expenses
-
-
-@celery_app.task(bind=True)
-def check_parsing_status(self, df):
-    return get_monthly_expenses(df)

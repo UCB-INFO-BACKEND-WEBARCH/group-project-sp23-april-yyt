@@ -1,11 +1,10 @@
-from flask import render_template, request, redirect, url_for, Flask
+from flask import render_template, request, redirect, url_for, Flask, jsonify
 from app import app
 import redis
 import os
 import openai
 from dotenv import load_dotenv
 # import parse_df
-import requests
 
 # Imports for parse df
 import re
@@ -18,6 +17,12 @@ import os
 import openai
 openai.api_key = os.environ.get('CHATGPT_API_KEY')
 from io import StringIO
+import requests
+
+# Imports for asynchronous tasks
+from worker.worker import check_parsing_status
+
+
 
 openai.api_key = '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'
 
@@ -314,31 +319,27 @@ def get_result_from_GPT(user_id):
     response.raise_for_status()
     result = response.json()
 
-    # # using asynctasks to check the status of the tasks
-
-    # # Call the task asynchronously
-    # task = analyze_spending_income.delay(spending_data, income_data)
-
-    # # Get the task ID to check its status later
-    # task_id = task.id
-
-    # # Retrieve the task status using the task ID
-    # task_status = AsyncResult(task_id, app=app)
-
-    # # Check if the task has been completed
-    # if task_status.ready():
-    #     # Get the result of the task
-    #     result = task_status.result
-    #     print("Task completed. Result:", result)
-    # else:
-    #     print("Task is still running or pending.")
-
     completions = result.get('choices', [])
     if completions:
         generated_text = completions[0]['text']
         return generated_text, 200
     else:
         return 'Unable to complete prompt', 500
+    
+@app.route('/check_task_status', methods=['POST'])
+def check_task_status():
+    task_id = request.form['task_id']
+    task = check_parsing_status.AsyncResult(task_id)
+
+    if task.state == 'SUCCESS':
+        result = task.result
+        # Render the success/viz page or return the data as JSON
+        # return render_template('success.html', result=result)
+        return jsonify({'status': 'completed', 'result': result})
+    else:
+        # Print current progress or return the status as JSON
+        # print(f'Task is not yet complete. Current status: {task.state}')
+        return jsonify({'status': 'in_progress', 'current_state': task.state})
 
 
 @app.route('/success/<user_id>')
