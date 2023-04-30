@@ -23,7 +23,9 @@ We plan to make a budgeting function for users. By integrating with Amazon's API
 
 ### USAGE
 Activate environment:
+
 ` . env/bin/activate`
 
 To run the server:
+
 `python run.py`
