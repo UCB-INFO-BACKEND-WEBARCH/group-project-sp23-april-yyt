@@ -5,9 +5,10 @@ import numpy as np
 from transformers import pipeline
 from typing import Union, List, Callable
 import json
+import os
 
 import openai
-openai.api_key = "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"
+openai.api_key = os.environ.get('CHATGPT_API_KEY')
 
 
 def clean_text(text: str): 
@@ -80,7 +81,7 @@ def load_and_clean_csv(path: str = None, df: str = None):
 
     Your task is to classify each of these into one of the following categories:
 
-    ['rent', 'food', 'fitness', 'travel', 'education', 'entertainment']
+    ['food', 'fitness', 'travel', 'education', 'entertainment']
 
     If the expense does not fall into one of those categories, return 'other'.
 
