@@ -20,13 +20,21 @@ from io import StringIO, BytesIO
 import requests
 
 # Imports for asynchronous tasks
-from worker.worker import check_parsing_status
-
-
+# from worker.worker import check_parsing_status
+# from .tasks import get_result_from_GPT_task
 
 openai.api_key = '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'
-
 load_dotenv()
+
+#### celery
+from celery import Celery
+
+broker_url = os.environ.get("CELERY_BROKER_URL"),
+res_backend = os.environ.get("CELERY_RESULT_BACKEND")
+
+celery_app = Celery(name='worker',
+                    broker=broker_url,
+                    result_backend=res_backend)
 
 
 def clean_text(text: str): 
@@ -89,7 +97,6 @@ def load_and_clean_csv(user_id: str):
     # Load the CSV string into a pandas DataFrame
     df = pd.read_csv(csv_string)[['Date', 'Amount', 'Expense']]
 
-    
     # Clean text
     df['Expense'] = df['Expense'].apply(clean_text)
     
@@ -99,8 +106,6 @@ def load_and_clean_csv(user_id: str):
     # Add column for month
     df['month'] = pd.to_datetime(df['date']).dt.month
 
-
-    
     prompt = """
     I'm going to give you a list of bank statement expenses with some text removed (to shorten the token size). 
 
@@ -120,7 +125,6 @@ def load_and_clean_csv(user_id: str):
     for idx, row in df.iterrows(): 
         prompt += f'\n {idx+1}: {row["expense"]}'
 
-    
     return df, prompt
 
 def get_monthly_expenses(user_id): 
@@ -228,7 +232,7 @@ def submit():
         elif request.form['investment_goal'] == 'college':
             db.hset(user_id, 'total_savings', request.form['total_savings'])
 
-    return redirect(url_for('success', user_id=user_id))
+    return redirect(url_for('status', user_id=user_id))
 
 def generate_prompt(user_id):
     """
@@ -254,10 +258,6 @@ def generate_prompt(user_id):
     Travel = (db.hget(user_id, 'travel').decode())
     Education = (db.hget(user_id, 'education').decode())
     Entertainment = (db.hget(user_id, 'entertainment').decode())
-
- 
-
-
 
     investment_proportion = int(db.hget(user_id, 'investment_proportion').decode())
     risk_tolerance = db.hget(user_id, 'risk_tolerance').decode()
@@ -306,7 +306,7 @@ def get_result_from_GPT(user_id):
     """
     
     prompt = generate_prompt(user_id)
-    # Run query on gpt-3.5-turb 
+    # Run query on gpt-3.5-turbo 
     result = openai.ChatCompletion.create(model = 'gpt-3.5-turbo',
                                           messages = [
                                             {"role": "user", "content": prompt},
@@ -315,57 +315,11 @@ def get_result_from_GPT(user_id):
     
     # Convert the string of lists to list 
     result = result['choices'][0]['message']['content']
-    
-    # # using asynctasks to check the status of the tasks
-
-    # # Call the task asynchronously
-    # task = analyze_spending_income.delay(spending_data, income_data)
-
-    # # Get the task ID to check its status later
-    # task_id = task.id
-
-    # # Retrieve the task status using the task ID
-    # task_status = AsyncResult(task_id, app=app)
-
-    # # Check if the task has been completed
-    # if task_status.ready():
-    #     # Get the result of the task
-    #     result = task_status.result
-    #     print("Task completed. Result:", result)
-    # else:
-    #     print("Task is still running or pending.")
 
     if result:
         return result, 200
     else:
         return 'Unable to complete prompt', 500
-    
-@app.route('/check_task_status', methods=['POST'])
-def check_task_status():
-    task_id = request.form['task_id']
-    task = check_parsing_status.AsyncResult(task_id)
-
-    if task.state == 'SUCCESS':
-        result = task.result
-        # Render the success/viz page or return the data as JSON
-        # return render_template('success.html', result=result)
-        return jsonify({'status': 'completed', 'result': result})
-    else:
-        # Print current progress or return the status as JSON
-        # print(f'Task is not yet complete. Current status: {task.state}')
-        return jsonify({'status': 'in_progress', 'current_state': task.state})
-
-
-@app.route('/success/<user_id>')
-def success(user_id):
-    # user_id = db.get('user_id')
-    # if user_id:
-    #     user_id = user_id.decode('utf-8')
-
-    result = chat_gpt_result(user_id)
-
-    return render_template('success.html', user_id=user_id, result = result)
-
 
 @app.route('/get_response', methods=['GET'])
 def chat_gpt_result(user_id):
@@ -384,3 +338,27 @@ def chat_gpt_result(user_id):
         return 'Unable to complete prompt', 500
     elif status_code == 200:
         return text
+    
+@celery_app.task(bind=True)
+def run_tasks(user_id):
+    get_monthly_expenses(user_id)
+    result = chat_gpt_result(user_id)
+    return result
+
+@app.route('/status/<user_id>')
+def status(user_id):
+
+    task = run_tasks.AsyncResult(user_id)
+
+    if task.state == 'SUCCESS':
+        # return render_template('success.html', user_id=user_id, result = task.result)
+        # return render_template('status.html', user_id=user_id, status=task.state)
+        return redirect(url_for('success', user_id=user_id, result = task.result))
+    else:
+        return render_template('status.html', user_id=user_id, status=task.state)
+
+@app.route('/success/<user_id>')
+def success(user_id, result):
+# #     result = chat_gpt_result(user_id)
+# #     # return render_template('success.html', user_id=user_id, task_id=task_id, result = result)
+    return render_template('success.html', user_id=user_id, result = result)

@@ -20,7 +20,7 @@ worker:
     build: ./worker
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
       - ./worker/worker.py:/app/worker.py
 
@@ -32,71 +32,8 @@ app:
     - 5050:5050
   environment:
     - CELERY_BROKER_URL=redis://redis:6379/0
-    - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    - CELERY_RESULT_BACKEND=redis://redis:6379/0
   depends_on:
     - redis
     - worker
 
-job_viewer:
-  image: mher/flower
-  environment:
-    - CELERY_BROKER_URL=redis://redis:6379
-    - FLOWER_PORT=8888
-  ports:
-    - 8888:8888
-  depends_on:
-    - redis
-  
-
-  # job_broker:
-  #     image: redis:latest
-  #     container_name: job_broker
-
-  # job_worker_01:
-  #     build: ./job_worker/.
-  #     container_name: job_worker_01
-  #     volumes:
-  #       - ./job_tasks/job_tasks.py:/app/job_tasks.py
-  #     environment:
-  #       CELERY_BROKER_URL: redis://job_broker:6379
-  #       CELERY_RESULT_BACKEND: redis://job_broker:6379
-  #       NLTK_DATA: /nltk_data
-  #     depends_on:
-  #       - job_broker
-
-  # job_worker_02:
-  #     build: ./job_worker/.
-  #     container_name: job_worker_02
-  #     volumes:
-  #       - ./job_tasks/job_tasks.py:/app/job_tasks.py
-  #     environment:
-  #       CELERY_BROKER_URL: redis://job_broker:6379
-  #       CELERY_RESULT_BACKEND: redis://job_broker:6379
-  #       NLTK_DATA: /nltk_data
-  #     depends_on:
-  #       - job_broker
-
-  # job_manager:
-  #   build: ./job_manager/
-  #   image: job-manager-image
-  #   volumes:
-  #       - ./job_tasks/job_tasks.py:/app/job_tasks.py
-  #   environment:
-  #     CELERY_BROKER_URL: redis://job_broker:6379
-  #     CELERY_RESULT_BACKEND: redis://job_broker:6379
-  #   ports:
-  #     - "5050:5000"
-  #   depends_on:
-  #       - job_broker
-  #       - job_worker_01
-  #       - job_worker_02
-
-  # job_viewer:  
-  #   image: mher/flower
-  #   environment:
-  #     - CELERY_BROKER_URL=redis://job_broker:6379
-  #     - FLOWER_PORT=8888
-  #   ports:  
-  #     - 8888:8888
-  #   depends_on:
-  #       - job_broker
