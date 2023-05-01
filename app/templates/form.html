@@ -18,34 +18,34 @@
         <h3>Demographic Information</h3>
         <div class="form-group">
             <label for="age">Age:</label>
-            <input type="number" id="age" name="age" class="form-control">
+            <input type="number" id="age" name="age" class="form-control" required value = "24">
         </div>
 
         <div class="form-group">
-            <label for="location">location:</label>
-            <input type="text" id="location" name="location" class="form-control">
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" class="form-control" required value = "San Francisco">
         </div>
 
         <div class="form-group">
             <label for="occupation">Occupation:</label>
-            <input type="text" id="occupation" name="occupation" class="form-control">
+            <input type="text" id="occupation" name="occupation" class="form-control" required value = "Data Scientist">
         </div>
 
         <div class="form-group">
             <label for="annual_income">Annual Income:</label>
-            <input type="number" id="annual_income" name="annual_income" class="form-control">
+            <input type="number" id="annual_income" name="annual_income" class="form-control" required value = "150000">
         </div>
 
         <div class="form-group">
             <label for="rent">Monthly Rent:</label>
-            <input type="text" id="rent" name="rent" class="form-control">
+            <input type="text" id="rent" name="rent" class="form-control" required value = "3000">
         </div>
 
         <!-- Credit card statement upload -->
         <h3>Credit Card Statement Upload</h3>
         <div class="form-group">
             <label for="cc_upload">Upload your previous months of credit card statement:</label>
-            <input type="file" id="cc_upload" name="cc_upload" accept="application/csv" multiple class="form-control-file">
+            <input type="file" id="cc_upload" name="cc_upload" accept="application/csv" multiple class="form-control-file" required>
         </div>
 
         <!-- Investment goals questions -->
@@ -62,12 +62,12 @@
 
         <!-- Investment preference questions -->
         <div class="form-group">
-            <label for="time">When do you want to achieve your goal?:</label>
-            <input type="number" class="form-control" id="time" name="time" placeholder="For example: Within 5 year">
+            <label for="time">When do you want to achieve your goal?(For example: Within 5 years):</label>
+            <input type="number" class="form-control" id="time" name="time" required value = "5">
         </div>
         <div class="form-group">
-            <label for="allocation_proportion">Allocation Proportion:</label>
-            <input type="number" class="form-control" id="allocation_proportion" name="allocation_proportion" placeholder="Enter proportion to allocate to investment">
+            <label for="allocation_proportion">Allocation Proportion(For example 50%):</label>
+            <input type="number" class="form-control" id="allocation_proportion" name="allocation_proportion" required value="50">
         </div>
         <div class="form-group">
             <label for="risk_tolerance">Risk Tolerance:</label>
@@ -91,18 +91,18 @@
         <!-- House goal -->
         <div id="house" class="goal-questions">
             <div class="form-group">
-                <label for="house-amount">How much do you need for the house?</label>
-                <input type="number" id="house-amount" name="house_amount" class="form-control">
+                <label for="house-amount">What is the price of the house?</label>
+                <input type="number" id="house-amount" name="house_amount" class="form-control" required value="1000000">
             </div>
 
             <div class="form-group">
-                <label for="house-settlement">What is the settlement amount?</label>
-                <input type="number" id="house-settlement" name="house_settlement" class="form-control">
+                <label for="house-settlement">How much is the down payment?</label>
+                <input type="number" id="house-settlement" name="house_settlement" class="form-control" required value="300000">
             </div>
 
             <div class="form-group">
                 <label for="house-loan-years">How many years of loan do you want?</label>
-                <input type="number" id="house-loan-years" name="house_loan_years" class="form-control">
+                <input type="number" id="house-loan-years" name="house_loan_years" class="form-control" required value="15">
             </div>
         </div>
 
@@ -110,25 +110,25 @@
         <div id="car" class="goal-questions">
             <div class="form-group">
                 <label for="car_price">Car Price:</label>
-                <input type="number" class="form-control" id="car_price" name="car_price" placeholder="Enter car price">
+                <input type="number" class="form-control" id="car_price" name="car_price" required value="100000">
               </div>
               <div class="form-group">
-                <label for="car_settlement">Settlement:</label>
-                <input type="number" class="form-control" id="car_settlement" name="car_settlement" placeholder="Enter settlement amount">
+                <label for="car_settlement">How much is the down payment?</label>
+                <input type="number" class="form-control" id="car_settlement" name="car_settlement" required value="30000">
               </div>
               <div class="form-group">
-                <label for="car_loan_years">Years of Loan:</label>
-                <input type="number" class="form-control" id="car_loan_years" name="car_loan_years" placeholder="Enter years of loan">
+                <label for="car_loan_years">How many years of loan do you want?</label>
+                <input type="number" class="form-control" id="car_loan_years" name="car_loan_years" required value="10">
               </div>
         <!-- Retirement Goal -->
         <div class="form-group">
             <label for="retirement_year">Retirement Age:</label>
-            <input type="number" class="form-control" id="retirement_year" name="retirement_year" placeholder="Enter retirement age">
+            <input type="number" class="form-control" id="retirement_year" name="retirement_year" required value="65">
         </div>
         
         <div class="form-group">
-            <label for="retirement_income">Retirement Monthly Income:</label>
-            <input type="number" class="form-control" id="retirement_income" name="retirement_income" placeholder="Enter desired retirement monthly income">
+            <label for="retirement_income">Desired Retirement Monthly Income:</label>
+            <input type="number" class="form-control" id="retirement_income" name="retirement_income" required value="3000">
         </div>
   
         <!-- College Savings Goal -->
@@ -137,8 +137,8 @@
             <input type="number" class="form-control" id="years_until" name="years_until" placeholder="Enter estimated years left until college">
         </div> -->
         <div class="form-group">
-            <label for="total_savings">Total Savings:</label>
-            <input type="number" class="form-control" id="total_savings" name="total_savings" placeholder="Enter estimated total savings for college">
+            <label for="total_savings">Total Savings needed for your future education:</label>
+            <input type="number" class="form-control" id="total_savings" name="total_savings" required value="80000">
         </div>
        
   
