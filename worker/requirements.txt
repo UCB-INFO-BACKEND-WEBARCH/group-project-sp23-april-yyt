@@ -1,5 +1,0 @@
-flask
-Flask-SQLAlchemy
-celery
-redis
-psycopg2-binary
