@@ -22,12 +22,12 @@ worker:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
-      - ./worker/worker.py:/app/worker.py
+      - ./worker/task.py:/app/task.py
 
 app:
   build: ./app
   volumes:
-    - ./worker/worker.py:/app/worker.py
+    - ./worker/task.py:/app/task.py
   ports:
     - 5050:5050
   environment:
