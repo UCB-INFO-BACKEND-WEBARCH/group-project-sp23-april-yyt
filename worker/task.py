@@ -7,7 +7,7 @@ import re
 from io import StringIO, BytesIO
 broker_url = os.environ.get("CELERY_BROKER_URL"),
 res_backend = os.environ.get("CELERY_RESULT_BACKEND")
-
+openai.api_key = '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'
 celery_app = Celery(name='worker',
                     broker=broker_url,
                     result_backend=res_backend)
