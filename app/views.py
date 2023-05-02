@@ -19,7 +19,7 @@ import requests
 # Imports for asynchronous tasks
 from worker.task import get_result_from_GPT, get_expense_data
 
-openai.api_key = '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'
+
 
 load_dotenv()
 
@@ -44,6 +44,7 @@ def submit():
     None
     """
     db = redis.Redis(host='localhost', port=6379, db=0)
+    user_id = request.form['user_id']
     if request.method == 'POST':
 
         # Grab file upload and user_id
@@ -53,10 +54,10 @@ def submit():
             db.hset(user_id, 'uploaded_csv', cc_history.read())
             
         
-        user_id = request.form['user_id']
+        
 
         
-        user_id = request.form['user_id']
+        
         db.hset(user_id, 'age', request.form['age'])
         db.hset(user_id, 'occupation', request.form['occupation'])
         db.hset(user_id, 'annual_income', request.form['annual_income'])
