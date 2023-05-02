@@ -4,7 +4,7 @@ import redis
 import os
 import openai
 from dotenv import load_dotenv
-# import parse_df
+import re
 
 # Imports for parse df
 import re
@@ -232,7 +232,9 @@ def submit():
         elif request.form['investment_goal'] == 'college':
             db.hset(user_id, 'total_savings', request.form['total_savings'])
 
-    return redirect(url_for('status', user_id=user_id))
+    # return redirect(url_for('status', user_id=user_id))
+    return redirect(url_for('success', user_id=user_id))
+
 
 def generate_prompt(user_id):
     """
@@ -253,11 +255,26 @@ def generate_prompt(user_id):
     investment_goal = (db.hget(user_id, 'investment_goal').decode())
     goal_achieve_time = (db.hget(user_id, 'goal_achievement_time').decode())
 
-    Food = (db.hget(user_id, 'food').decode())
-    Fitness = (db.hget(user_id, 'fitness').decode())
-    Travel = (db.hget(user_id, 'travel').decode())
-    Education = (db.hget(user_id, 'education').decode())
-    Entertainment = (db.hget(user_id, 'entertainment').decode())
+    # Food = (db.hget(user_id, 'food').decode())
+    # Fitness = (db.hget(user_id, 'fitness').decode())
+    # Travel = (db.hget(user_id, 'travel').decode())
+    # Education = (db.hget(user_id, 'education').decode())
+    # Entertainment = (db.hget(user_id, 'entertainment').decode())
+
+    Rent = 3003
+    Food = 1000
+    Fitness = 567
+    Travel = 80
+    Education = 300
+    Entertainment = 400
+
+    db.hset(user_id, 'rent', Rent)
+    db.hset(user_id, 'food', Food)
+    db.hset(user_id, 'fitness', Fitness)
+    db.hset(user_id, 'travel', Travel)
+    db.hset(user_id, 'education', Education)
+    db.hset(user_id, 'entertainment', Entertainment)
+
 
     investment_proportion = int(db.hget(user_id, 'investment_proportion').decode())
     risk_tolerance = db.hget(user_id, 'risk_tolerance').decode()
@@ -315,6 +332,8 @@ def get_result_from_GPT(user_id):
     
     # Convert the string of lists to list 
     result = result['choices'][0]['message']['content']
+    db = redis.Redis(host='localhost', port=6379, db=0)
+    db.hset(user_id, 'advice_text', result)
 
     if result:
         return result, 200
@@ -339,26 +358,143 @@ def chat_gpt_result(user_id):
     elif status_code == 200:
         return text
     
-@celery_app.task(bind=True)
-def run_tasks(user_id):
-    get_monthly_expenses(user_id)
-    result = chat_gpt_result(user_id)
-    return result
 
-@app.route('/status/<user_id>')
-def status(user_id):
+#### parsing the advice text ####
 
-    task = run_tasks.AsyncResult(user_id)
+def extract_advice(text):
+    advice = {}
+    
+    # Extract monthly expense
+    monthly_expense_1 = re.search(r'Your monthly expenses add up to approximately \$([\d,]+)', text)
+    monthly_expense_2 = re.search(r'Based on your monthly expenses of \$([\d,]+)', text)
+    if monthly_expense_1:
+        advice['monthly_expense'] = float(monthly_expense_1.group(1).replace(',', ''))
+    elif monthly_expense_2:
+        advice['monthly_expense'] = float(monthly_expense_2.group(1).replace(',', ''))
 
-    if task.state == 'SUCCESS':
-        # return render_template('success.html', user_id=user_id, result = task.result)
-        # return render_template('status.html', user_id=user_id, status=task.state)
-        return redirect(url_for('success', user_id=user_id, result = task.result))
+    # Extract emergency fund lower and upper bounds
+    emergency_fund = re.search(r'an emergency fund of \$([\d,]+) to \$([\d,]+)', text)
+    if emergency_fund:
+        advice['emergency_fund_lower_bound'] = float(emergency_fund.group(1).replace(',', ''))
+        advice['emergency_fund_upper_bound'] = float(emergency_fund.group(2).replace(',', ''))
+
+    # Extract down payment amount
+    down_payment = re.search(r'home is \$([\d,]+)', text)
+    if down_payment:
+        advice['down_payment_amount'] = float(down_payment.group(1).replace(',', ''))
+
+    # Extract downpayment time
+    downpayment_time = re.search(r'aim to buy the house in (\d+) years', text)
+    if downpayment_time:
+        advice['downpayment_time'] = int(downpayment_time.group(1))
+
+    # Extract downpayment saving goal
+    saving_goal = re.search(r'you\'ll need to save or invest \$([\d,]+) annually', text)
+    if saving_goal:
+        advice['downpayment_saving_goal'] = float(saving_goal.group(1).replace(',', ''))
+
+    # Extract investment ratios
+    bonds_ratio = re.search(r'(-?\d+)-(-?\d+)% in bonds', text)
+    stocks_ratio = re.search(r'(-?\d+)-(-?\d+)% in stocks', text)
+    mutual_funds_ratio = re.search(r'(-?\d+)-(-?\d+)% in mutual funds', text)
+    derivatives_ratio = re.search(r'(-?\d+)-(-?\d+)% in derivatives', text)
+
+
+    if bonds_ratio:
+        advice['bonds_investment_ratio'] = (float(bonds_ratio.group(1)) + float(bonds_ratio.group(2))) / 2
     else:
-        return render_template('status.html', user_id=user_id, status=task.state)
+        advice['bonds_investment_ratio'] = 0
+
+    if stocks_ratio:
+        advice['stocks_investment_ratio'] = (float(stocks_ratio.group(1)) + float(stocks_ratio.group(2))) / 2
+    else:
+        advice['stocks_investment_ratio'] = 0
+
+    if mutual_funds_ratio:
+        advice['mutual_funds_investment_ratio'] = (float(mutual_funds_ratio.group(1)) + float(mutual_funds_ratio.group(2))) / 2
+    else:
+        advice['mutual_funds_investment_ratio'] = 0
+
+    if derivatives_ratio:
+        advice['derivatives_investment_ratio'] = (float(derivatives_ratio.group(1)) + float(derivatives_ratio.group(2))) / 2
+    else:
+        advice['derivatives_investment_ratio'] = 0
+
+    
+    advice['derivatives_investment_ratio'] = 100 - advice['bonds_investment_ratio'] - advice['stocks_investment_ratio'] - advice['mutual_funds_investment_ratio'] - advice['derivatives_investment_ratio']
+
+    return advice
+
+
+def parse_advice(result_text):
+    # db = redis.Redis(host='localhost', port=6379, db=0)
+    # advice_text = db.hget(user_id, 'advice_text')
+    paragraph = result_text
+    # if advice_text:
+    #     paragraph = advice_text
+    #     # .decode('utf-8')
+    # else:
+    #     paragraph = None
+    advice_dict = extract_advice(paragraph)
+    print(advice_dict)
+    return advice_dict
+
+
+### Celery ###
+# @celery_app.task(bind=True)
+# def run_tasks(user_id):
+#     get_monthly_expenses(user_id)
+#     result = chat_gpt_result(user_id)
+#     return result
+
+# @app.route('/status/<user_id>')
+# def status(user_id):
+#     task = run_tasks.AsyncResult(user_id)
+#     if task.state == 'SUCCESS':
+#         # return render_template('success.html', user_id=user_id, result = task.result)
+#         # return render_template('status.html', user_id=user_id, status=task.state)
+#         return redirect(url_for('success', user_id=user_id, result = task.result))
+#     else:
+#         return render_template('status.html', user_id=user_id, status=task.state)
+
+# @app.route('/success/<user_id>')
+# def success(user_id, result):
+# # #     result = chat_gpt_result(user_id)
+# # #     # return render_template('success.html', user_id=user_id, task_id=task_id, result = result)
+#     return render_template('success.html', user_id=user_id, result = result)
 
 @app.route('/success/<user_id>')
-def success(user_id, result):
-# #     result = chat_gpt_result(user_id)
+def success(user_id):
+    result = chat_gpt_result(user_id)
+    result_dict = parse_advice(result)
+
+    ## adding other data entries to the dictionary
+    db = redis.Redis(host='localhost', port=6379, db=0)
+    
+
+    result_dict['user_id'] = user_id
+    # result_dict['monthly_expenses'] = db.hget(user_id, 'monthly_expenses')
+    result_dict['age'] = db.hget(user_id, 'age')
+    result_dict['occupation'] = db.hget(user_id, 'occupation')
+    result_dict['annual_income'] = db.hget(user_id, 'annual_income')
+    result_dict['rent'] = db.hget(user_id, 'rent')
+    result_dict['location'] = db.hget(user_id, 'location')
+    result_dict['investment_goal'] = db.hget(user_id, 'investment_goal')
+    result_dict['investment_proportion'] = db.hget(user_id, 'investment_proportion')
+    result_dict['goal_achievement_time'] = db.hget(user_id, 'goal_achievement_time')
+    result_dict['risk_tolerance'] = db.hget(user_id, 'risk_tolerance')
+    result_dict['investment_type'] = db.hget(user_id, 'investment_type')
+    result_dict['result'] = result
+
+    result_dict['food'] = db.hget(user_id, 'food')
+    result_dict['fitness'] = db.hget(user_id, 'fitness')
+    result_dict['travel'] = db.hget(user_id, 'travel')
+    result_dict['education'] = db.hget(user_id, 'education')
+    result_dict['entertainment'] = db.hget(user_id, 'entertainment')
+
+    if not result_dict['monthly_expense']:
+        # result_dict['monthly_expenses'] = 3750
+        result_dict['food'] + result_dict['fitness'] + result_dict['travel'] + result_dict['education'] + result_dict['entertainment']+ result_dict['rent']
+
 # #     # return render_template('success.html', user_id=user_id, task_id=task_id, result = result)
-    return render_template('success.html', user_id=user_id, result = result)
+    return render_template('success.html', **result_dict)
