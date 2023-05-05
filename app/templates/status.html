@@ -2,10 +2,14 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Form Submission is in Progress</title>
+    <title>Form Submission Successful!</title>
   </head>
   <body>
-    <h1>Form Submission is {{status}}.</h1>
+    <h4>Task of processing the file is {{expense_task_status}}.</h4>
+    <h4>Task of generating ChatGPT result is {{advice_task_status}}.</h4>
+    <form action="/check_status" method="get">
+      <button type="check_status" class="btn btn-primary">Check Status</button>
+    </form>
     <p>Thank you for your patience.</p>
   </body>
 </html>
