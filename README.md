@@ -22,10 +22,24 @@ We plan to make a budgeting function for users. By integrating with Amazon's API
 
 
 ### USAGE
-Activate environment:
+Install the required dependencies:
+`pip install -r requirements.txt`
 
-` . env/bin/activate`
+Start redis:
+`redis-server`
 
-To run the server:
+To run the celery application:
+`cd worker`
+`celery -A task worker --loglevel=info`
 
-`python run.py`
+To run the flask application:
+`cd app`
+`export FLASK_APP=app.py`
+`export FLASK_ENV=development`
+`flask run`
+
+
+<!-- cd app
+export FLASK_APP=app.py
+export FLASK_ENV=development
+flask run -->

@@ -1,14 +1,129 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
-    <title>Form Submission Successful</title>
-  </head>
-  <body>
-    <h1>Form Submission Successful</h1>
-    <p>Thank you for submitting your form.</p>
-    <p>We have received your information.Your unique user ID is: {{ user_id }}. </p> 
-    <p>Your analysis result is: {{result}}. </p>
-    <!-- <script src="{{ url_for('static', filename='main.js') }}"></script> -->
-  </body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Result</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1 class="text-center mt-4 mb-4">Form Submission Successful</h1>
+  <p  class="text-center mt-4 mb-4">Thank you for submitting your form.</p>
+  <p  class="text-center mt-4 mb-4">We have received your information.Your unique user ID is: {{ user_id }}. </p> 
+  <div class="container">
+        <h1 class="text-center mt-4 mb-4">Analysis Result</h1>
+        <p class="text-center mt-4 mb-4">{{result}}</p>
+        <table class="table table-bordered table-striped">
+            <tbody>
+                <!-- <tr>
+                  <th scope="row">Annual Income</th>
+                  <td>{{ annual_income }}</td>
+                </tr> -->
+                <tr>
+                    <th scope="row">Estimated Monthly Expense</th>
+                    <td>${{ monthly_expense }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Suggested Emergency Fund</th>
+                    <td>${{ emergency_fund_lower_bound }} ~ ${{ emergency_fund_upper_bound }}</td>
+                </tr>
+
+                <tr>
+                    <th scope="row">Estimated Downpayment</th>
+                    <td>${{ down_payment_amount }} in {{ downpayment_time }} years</td>
+                </tr>
+                <tr>
+                    <th scope="row">Downpayment Saving Goal</th>
+                    <td>${{ downpayment_saving_goal }} per year</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <style>
+          .chart-container {
+            width: 50%;
+            float: center;
+            align-items: center;
+          }
+          .container{
+            /* width: 60%; */
+            float: center;
+            align-items: center;
+          }
+        </style>
+  
+        <h4 class="text-center">Suggested Investment Ratios</h4>
+        <div class="chart-container">
+          <div class="container">
+            <div class="mt-4 mb-4">
+                <canvas id="investmentChart"></canvas>
+            </div>
+          </div>
+          <script>
+            // Get the canvas element to render the chart
+            const ctx = document.getElementById('investmentChart').getContext('2d');
+            // Create the pie chart
+            const investmentChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Bonds', 'Stocks', 'Mutual Funds','Derivatives','Others'],
+                    datasets: [{
+                        data: [{{ bonds_investment_ratio }}, {{ stocks_investment_ratio }}, {{ mutual_funds_investment_ratio }}, {{derivatives_investment_ratio}}, {{ others_investment_ratio }}],
+                        backgroundColor: ['#4e73df', '#1cc88a', '#FFED00','#FB2576','#A149FA']
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+          </script>
+        </div>
+      </div>
+        <!-- <div class="container">
+          <div class="mt-4 mb-4">
+              <canvas id="expenseChart"></canvas>
+          </div>
+        </div> 
+        <script>
+          // Get the canvas element to render the chart
+          const ctx_exp = document.getElementById('expenseChart').getContext('2d');
+  
+          // Create the pie chart
+          const expenseChart = new Chart(ctx_exp, {
+              type: 'bar',
+              data: {
+                  labels: ['Rent', 'Food', 'Fitness', 'Travel', 'Entertainment','Education', 'Others'],
+                  datasets: [{
+                      data: [{{ rent }}, {{ food }}, {{ travel }}, {{ fitness }}, {{ entertainment }}, {{ education }}],
+                      backgroundColor: ['#4e73df','#1cc88a','#36b9cc','B2A4FF','FFB4B4','FFDEB4']
+                  }],
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: {
+                          // position: 'right'
+                          display: false
+                      }
+                  }
+                  ,
+                  scales: {
+                      y: {
+                          beginAtZero: true
+                      }
+                  }
+              }
+          });
+      </script> -->
+      <!-- </div> -->
+
+</body>
 </html>

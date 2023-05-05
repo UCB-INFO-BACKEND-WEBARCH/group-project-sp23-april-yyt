@@ -2,10 +2,16 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Form Submission is in Progress</title>
+    <title>Form Submission Successful!</title>
   </head>
   <body>
-    <h1>Form Submission is {{status}}.</h1>
+    <h2>Form Submission Successful!</h1>
+    <p>Your unique user_id is: {{user_id}}</p>
+    <p>Task_id of processing the file is: {{expense_task_status}}.</p>
+    <p>Task_id of generating ChatGPT result is: {{advice_task_status}}.</p>
+    <form action="{{ url_for('check_status', user_id=user_id, expense_task_id=expense_task_id, advice_task_id=advice_task_id) }}" method="get">
+      <button type="submit" class="btn btn-primary">Check Status</button>
+    </form>
     <p>Thank you for your patience.</p>
   </body>
 </html>

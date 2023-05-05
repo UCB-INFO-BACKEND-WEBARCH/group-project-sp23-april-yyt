@@ -1,11 +1,11 @@
-version: '3.9'
+# version: '3.9'
 
-services:
-  redis:
-    image: redis:7.0.11
-    container_name: redis
-    ports:
-      - 6379:6379
+# services:
+#   redis:
+#     image: redis
+#     container_name: redis
+#     ports:
+#       - 6379:6379
 
   # flask:
   #   build: .
@@ -16,24 +16,52 @@ services:
   #   environment:
   #     - REDIS_HOST=redis
 
-worker:
-    build: ./worker
+  # worker:
+  #     build: ./worker
+  #     environment:
+  #       - CELERY_BROKER_URL=redis://redis:6379/0
+  #       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  #     volumes:
+  #       - ./worker/task.py:/app/task.py
+
+  # app:
+  #   build: ./app
+  #   volumes:
+  #     - ./worker/task.py:/app/task.py
+  #   ports:
+  #     - 5050:5050
+  #   environment:
+  #     - CELERY_BROKER_URL=redis://redis:6379/0
+  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  #   depends_on:
+  #     - redis
+  #     - worker
+
+
+
+version: "3.9"
+services:
+  app:
+    build: './app'
+    environment:
+      - REDIS_URL=redis
+      - REDIS_PORT=6379
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+
+  worker:
+    build: './worker'
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    volumes:
-      - ./worker/task.py:/app/task.py
+    depends_on:
+      - redis
+      - app
 
-app:
-  build: ./app
-  volumes:
-    - ./worker/task.py:/app/task.py
-  ports:
-    - 5050:5050
-  environment:
-    - CELERY_BROKER_URL=redis://redis:6379/0
-    - CELERY_RESULT_BACKEND=redis://redis:6379/0
-  depends_on:
-    - redis
-    - worker
-
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - 6379:6379
