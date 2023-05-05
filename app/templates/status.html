@@ -5,10 +5,12 @@
     <title>Form Submission Successful!</title>
   </head>
   <body>
-    <h4>Task of processing the file is {{expense_task_status}}.</h4>
-    <h4>Task of generating ChatGPT result is {{advice_task_status}}.</h4>
-    <form action="/check_status" method="get">
-      <button type="check_status" class="btn btn-primary">Check Status</button>
+    <h2>Form Submission Successful!</h1>
+    <p>Your unique user_id is: {{user_id}}</p>
+    <p>Task_id of processing the file is: {{expense_task_status}}.</p>
+    <p>Task_id of generating ChatGPT result is: {{advice_task_status}}.</p>
+    <form action="{{ url_for('check_status', user_id=user_id, expense_task_id=expense_task_id, advice_task_id=advice_task_id) }}" method="get">
+      <button type="submit" class="btn btn-primary">Check Status</button>
     </form>
     <p>Thank you for your patience.</p>
   </body>

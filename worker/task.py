@@ -5,8 +5,10 @@ import openai
 import pandas as pd
 import re
 from io import StringIO, BytesIO
-broker_url = os.environ.get("CELERY_BROKER_URL"),
-res_backend = os.environ.get("CELERY_RESULT_BACKEND")
+# broker_url = os.environ.get("CELERY_BROKER_URL"),
+# res_backend = os.environ.get("CELERY_RESULT_BACKEND")
+broker_url = 'redis://localhost:6379/0'
+res_backend = 'redis://localhost:6379/0'
 openai.api_key = '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'
 celery_app = Celery(name='task',
                     broker=broker_url,

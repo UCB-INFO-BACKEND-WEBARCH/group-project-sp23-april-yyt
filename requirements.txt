@@ -6,4 +6,3 @@ celery ==5.2.7
 pandas
 requests
 numpy
-re

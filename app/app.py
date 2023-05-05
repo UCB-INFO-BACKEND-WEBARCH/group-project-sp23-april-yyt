@@ -11,12 +11,14 @@ import json
 openai.api_key = os.environ.get('CHATGPT_API_KEY')
 from io import StringIO
 import requests
-from worker.task import get_result_from_GPT, get_expense_data
 from celery import Celery
 
 # initialize the flask app & celery app
 app = Flask(__name__)
-celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+# if using docker, use the following line:
+# celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
+# if running locally, use the following line:
+celery_app = Celery('worker', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
 load_dotenv()
 
 
@@ -41,7 +43,6 @@ def submit():
     db = redis.Redis(host='localhost', port=6379, db=0)
     user_id = request.form['user_id']
     if request.method == 'POST':
-
         # Grab file upload and user_id
         cc_history =  request.files['cc_upload']
         if cc_history:
@@ -81,10 +82,9 @@ def submit():
     # expense_task = get_expense_data.delay(user_id)
     # advice_task = get_result_from_GPT.delay(user_id)
     
-    redirect(url_for('status', user_id=user_id, expense_task_id=expense_task.id, advice_task_id=advice_task.id))
-    return jsonify({'expense_task_id': expense_task.id, 'advice_task_id': advice_task.id}), 202
+    return redirect(url_for('status', user_id=user_id, expense_task_id=expense_task.id, advice_task_id=advice_task.id))
 
-@app.route('/status/<expense_task_id>/<advice_task_id>', methods=['GET'])
+@app.route('/status/<user_id>/<expense_task_id>/<advice_task_id>', methods=['GET'])
 def status(expense_task_id, advice_task_id, user_id):
     # expense_task = get_expense_data.AsyncResult(expense_task_id)
     # advice_task = get_result_from_GPT.AsyncResult(advice_task_id)
@@ -97,7 +97,7 @@ def status(expense_task_id, advice_task_id, user_id):
     return render_template('status.html', **status_dict)
 
 
-@app.route('/check_status/<expense_task_id>/<advice_task_id>', methods=['GET'])
+@app.route('/check_status/<user_id>/<expense_task_id>/<advice_task_id>', methods=['GET'])
 def check_status(expense_task_id, advice_task_id, user_id):
     # expense_task = get_expense_data.AsyncResult(expense_task_id)
     # advice_task = get_result_from_GPT.AsyncResult(advice_task_id)
@@ -107,6 +107,7 @@ def check_status(expense_task_id, advice_task_id, user_id):
 
     if advice_task_status.ready():
         result = advice_task_status.result
+        print(result)
         return redirect(url_for('success', user_id=user_id, result=result))
     else:
         return render_template('status.html', expense_task_status=expense_task_status, advice_task_status=advice_task_status, expense_task_id=expense_task_id, advice_task_id=advice_task_id, user_id=user_id)
@@ -191,7 +192,7 @@ def parse_advice(result_text):
     return advice_dict
 
 
-@app.route('/success/<user_id>')
+@app.route('/success/<user_id>/<result>')
 def success(user_id, result):
     result_dict = parse_advice(result)
 
@@ -210,16 +211,16 @@ def success(user_id, result):
     result_dict['risk_tolerance'] = db.hget(user_id, 'risk_tolerance')
     result_dict['investment_type'] = db.hget(user_id, 'investment_type')
     result_dict['result'] = result
-
+    result_dict['monthly_expense'] = db.hget(user_id,'monthly_expense')
     result_dict['food'] = db.hget(user_id, 'food')
     result_dict['fitness'] = db.hget(user_id, 'fitness')
     result_dict['travel'] = db.hget(user_id, 'travel')
     result_dict['education'] = db.hget(user_id, 'education')
     result_dict['entertainment'] = db.hget(user_id, 'entertainment')
 
-    if not result_dict['monthly_expense']:
-        # result_dict['monthly_expenses'] = 3750
-        result_dict['food'] + result_dict['fitness'] + result_dict['travel'] + result_dict['education'] + result_dict['entertainment']+ result_dict['rent']
+    # if not result_dict['monthly_expense']:
+    #     # result_dict['monthly_expenses'] = 3750
+    #     result_dict['food'] + result_dict['fitness'] + result_dict['travel'] + result_dict['education'] + result_dict['entertainment']+ result_dict['rent']
 
 # #     # return render_template('success.html', user_id=user_id, task_id=task_id, result = result)
     return render_template('success.html', **result_dict)
