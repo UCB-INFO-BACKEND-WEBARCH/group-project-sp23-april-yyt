@@ -12,6 +12,8 @@ openai.api_key = os.environ.get('CHATGPT_API_KEY')
 from io import StringIO
 import requests
 from celery import Celery
+from celery import chain
+
 
 # initialize the flask app & celery app
 app = Flask(__name__)
@@ -73,45 +75,41 @@ def submit():
         elif request.form['investment_goal'] == 'college':
             db.hset(user_id, 'total_savings', request.form['total_savings'])
 
-    #                        queue name in task folder.function name
-    expense_task = celery_app.send_task('task.get_expense_data', kwargs={'user_id': user_id})
+    # #                        queue name in task folder.function name
+    # expense_task = celery_app.send_task('task.get_expense_data', kwargs={'user_id': user_id})
     # app.logger.info(expense_task.backend)
     advice_task = celery_app.send_task('task.get_result_from_GPT', kwargs={'user_id': user_id})
     # app.logger.info(expense_task.backend)    
+    
 
     # expense_task = get_expense_data.delay(user_id)
     # advice_task = get_result_from_GPT.delay(user_id)
     
-    return redirect(url_for('status', user_id=user_id, expense_task_id=expense_task.id, advice_task_id=advice_task.id))
+    return redirect(url_for('status', user_id=user_id, advice_task_id=advice_task.id))
 
-@app.route('/status/<user_id>/<expense_task_id>/<advice_task_id>', methods=['GET'])
-def status(expense_task_id, advice_task_id, user_id):
+@app.route('/status/<user_id>/<advice_task_id>', methods=['GET'])
+def status(advice_task_id, user_id):
     # expense_task = get_expense_data.AsyncResult(expense_task_id)
     # advice_task = get_result_from_GPT.AsyncResult(advice_task_id)
 
-    expense_task_status = celery_app.AsyncResult(expense_task_id, app=celery_app)
     advice_task_status = celery_app.AsyncResult(advice_task_id, app=celery_app)
 
-    status_dict = {'expense_task_status': expense_task_status, 'advice_task_status': advice_task_status, 'expense_task_id': expense_task_id, 'advice_task_id': advice_task_id, 'user_id': user_id}
+    status_dict = { 'advice_task_status': advice_task_status.state,  'advice_task_id': advice_task_id, 'user_id': user_id}
 
     return render_template('status.html', **status_dict)
 
 
-@app.route('/check_status/<user_id>/<expense_task_id>/<advice_task_id>', methods=['GET'])
-def check_status(expense_task_id, advice_task_id, user_id):
-    # expense_task = get_expense_data.AsyncResult(expense_task_id)
-    # advice_task = get_result_from_GPT.AsyncResult(advice_task_id)
+@app.route('/check_status/<user_id>/<advice_task_id>', methods=['GET'])
+def check_status(advice_task_id, user_id):
 
-    expense_task_status = celery_app.AsyncResult(expense_task_id, app=celery_app)
     advice_task_status = celery_app.AsyncResult(advice_task_id, app=celery_app)
 
-    if advice_task_status.ready():
+    if advice_task_status.state == 'SUCCESS':
         result = advice_task_status.result
         print(result)
-        return redirect(url_for('success', user_id=user_id, result=result))
+        return redirect(url_for('success', user_id=user_id))
     else:
-        return render_template('status.html', expense_task_status=expense_task_status, advice_task_status=advice_task_status, expense_task_id=expense_task_id, advice_task_id=advice_task_id, user_id=user_id)
-
+        return render_template('status.html', advice_task_status=advice_task_status.state,  advice_task_id=advice_task_id, user_id=user_id)
 
 #### parsing the advice text ####
 def extract_advice(text):
@@ -192,12 +190,12 @@ def parse_advice(result_text):
     return advice_dict
 
 
-@app.route('/success/<user_id>/<result>')
-def success(user_id, result):
-    result_dict = parse_advice(result)
-
-    ## adding other data entries to the dictionary
+@app.route('/success/<user_id>')
+def success(user_id):
     db = redis.Redis(host='localhost', port=6379, db=0)
+
+    result = db.hget(user_id, 'advice_text').decode('utf-8')
+    result_dict = parse_advice(result)
 
     result_dict['user_id'] = user_id
     result_dict['age'] = db.hget(user_id, 'age')
