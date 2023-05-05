@@ -80,12 +80,17 @@ def generate_prompt(user_id):
     Education = 300
     Entertainment = 400
 
-
-
     investment_proportion = int(db.hget(user_id, 'investment_proportion').decode())
     risk_tolerance = db.hget(user_id, 'risk_tolerance').decode()
-    investment_types = db.hget(user_id, 'investment_type').decode()
-    with open('app/static/prompt_template.txt', 'r') as file:
+    investment_types = db.hget(user_id, 'investment_types').decode()
+    # investment_types_raw = db.hget(user_id, 'investment_type')
+    # investment_types = investment_types_raw.decode() if investment_types_raw else None
+
+    # Get the current directory of the task.py file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Construct the absolute path of the prompt_template.txt file
+    prompt_template_path = os.path.join(current_dir, '..', 'app', 'static', 'prompt_template.txt')
+    with open(prompt_template_path, 'r') as file:
         template = file.read()
     # Check user's investment goal and compose prompt accordingly
     if investment_goal == 'house':
@@ -115,9 +120,15 @@ def generate_prompt(user_id):
 def get_expense_data(user_id):
     # Extract monthly expenses
     db = redis.Redis(host='localhost', port=6379, db=0)
-    df, prompts = load_and_clean_csv(user_id)   
-    monthly_expenses = get_monthly_expenses(df)
-    
+    # df, prompts = load_and_clean_csv(user_id)   
+    monthly_expenses = {
+        'food': 500,
+        'fitness': 100,
+        'travel': 300,
+        'education': 200,
+        'entertainment': 150
+    }
+
     # Insert to redis DB
     expense_types = ['food', 'fitness', 'travel', 'education', 'entertainment']
     for expense_type in expense_types: 
@@ -173,13 +184,12 @@ def load_and_clean_csv(user_id):
     """
     db = redis.Redis(host='localhost', port=6379, db=0)
     # Parse the CSV file
-    csv_data = db.get(user_id, 'uploaded_csv')
+    csv_data = db.hget(user_id, 'uploaded_csv')
     try:
         csv_string = StringIO(csv_data)
     except:
         csv_string = BytesIO(csv_data)
     df = pd.read_csv(csv_string)[['Date', 'Amount', 'Expense']]
-
     
     # Clean text
     df['Expense'] = df['Expense'].apply(clean_text)
@@ -243,3 +253,4 @@ def get_monthly_expenses(df):
     monthly_expenses = df.groupby(['category', 'month'])['amount'].sum().groupby('category').mean().to_dict()
 
     return monthly_expenses
+
