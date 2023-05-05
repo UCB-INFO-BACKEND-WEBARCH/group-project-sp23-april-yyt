@@ -11,15 +11,12 @@ import json
 openai.api_key = os.environ.get('CHATGPT_API_KEY')
 from io import StringIO
 import requests
-
-# Imports for asynchronous tasks
 from worker.task import get_result_from_GPT, get_expense_data
 from celery import Celery
 
+# initialize the flask app & celery app
 app = Flask(__name__)
 celery_app = Celery('worker', broker='redis://redis:6379/0', backend='redis://redis:6379/0')
-
-
 load_dotenv()
 
 
