@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   redis:
-    image: redis:7.0.11
+    image: redis
     container_name: redis
     ports:
       - 6379:6379
@@ -16,24 +16,51 @@ services:
   #   environment:
   #     - REDIS_HOST=redis
 
-worker:
-    build: ./worker
+  worker:
+      build: ./worker
+      environment:
+        - CELERY_BROKER_URL=redis://redis:6379/0
+        - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      volumes:
+        - ./worker/task.py:/app/task.py
+
+  app:
+    build: ./app
+    volumes:
+      - ./worker/task.py:/app/task.py
+    ports:
+      - 5050:5050
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    volumes:
-      - ./worker/task.py:/app/task.py
+    depends_on:
+      - redis
+      - worker
 
-app:
-  build: ./app
-  volumes:
-    - ./worker/task.py:/app/task.py
-  ports:
-    - 5050:5050
-  environment:
-    - CELERY_BROKER_URL=redis://redis:6379/0
-    - CELERY_RESULT_BACKEND=redis://redis:6379/0
-  depends_on:
-    - redis
-    - worker
 
+
+# version: "3.7"
+# services:
+#   flask_app:
+#     build: './flask_app'
+#     environment:
+#       - REDIS_URL=redis
+#       - REDIS_PORT=6379
+#       - MONGODB_HOST=mongodb
+#       - MONGODB_PORT=27017
+#     ports:
+#       - "5000:5000"
+#     depends_on:
+#       - redis
+
+#   simple_worker:
+#     build: './simple_worker'
+#     user: nobody
+#     depends_on:
+#       - redis
+#       - flask_app
+
+#   redis:
+#     image: 'redis:4-alpine'
+#     ports:
+#       - '6379:6379'

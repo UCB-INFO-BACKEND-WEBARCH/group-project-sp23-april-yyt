@@ -1,4 +1,6 @@
-#!/Users/bennettcohen/Desktop/local/school/spring-2023/info253/final/env/bin/python3.10
+#!/bin/sh
+'''exec' "/Users/aprilyang/Desktop/MEng-Spring/INFO253B/Project Debug/group-project-sp23-april-yyt/env/bin/python3.9" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys

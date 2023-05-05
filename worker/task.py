@@ -8,7 +8,7 @@ from io import StringIO, BytesIO
 broker_url = os.environ.get("CELERY_BROKER_URL"),
 res_backend = os.environ.get("CELERY_RESULT_BACKEND")
 openai.api_key = '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'
-celery_app = Celery(name='worker',
+celery_app = Celery(name='task',
                     broker=broker_url,
                     result_backend=res_backend)
 @celery_app.task
@@ -83,7 +83,7 @@ def generate_prompt(user_id):
     investment_proportion = int(db.hget(user_id, 'investment_proportion').decode())
     risk_tolerance = db.hget(user_id, 'risk_tolerance').decode()
     investment_types = db.hget(user_id, 'investment_type').decode()
-    with open('app/prompt_template.txt', 'r') as file:
+    with open('app/static/prompt_template.txt', 'r') as file:
         template = file.read()
     # Check user's investment goal and compose prompt accordingly
     if investment_goal == 'house':
