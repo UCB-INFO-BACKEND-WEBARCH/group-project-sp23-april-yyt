@@ -1,11 +1,11 @@
 ## Project Proposal - Group 3
 #### Team Name: FinGuru - Personal Finance Assistant API
-#### Members: Bennett Colin, Yuwei Quan, Yixuan Tao, Yutong Yang
+#### Members: April Yang, Bennett Cohen, Yuwei Quan, Yixuan Tao
 
 
 ### I. Project Idea
-Create a personal finance assistant API that provides users with personalized financial advice and budgeting tools based on their income, expenses, and investment goals. The API will integrate with popular shopping apps like Amazon to allow users to track their spending and set budget limits. 
-The backend infrastructure will be built using Python Flask, ensuring a lightweight and scalable framework for seamless API integration. Docker will be employed to containerize the application, allowing for easy deployment and management across various environments. To handle time-consuming tasks efficiently, we will utilize asynchronous task queues with Celery, enabling the processing of multiple user requests concurrently without hindering the application's performance. 
+Create a personal finance assistant that provides users with personalized financial advice and budgeting tools based on their income, expenses, and investment goals. We used ChatGPT API to get smart financial advice based on analysis of user's financial data and expense history.
+The backend infrastructure is built using Python Flask, ensuring a lightweight and scalable framework for seamless API integration. Docker will be employed to containerize the application, allowing for easy deployment and management across various environments. To handle time-consuming tasks efficiently, we will utilize asynchronous task queues with Celery, enabling the processing of multiple user requests concurrently without hindering the application's performance, also enabling users to check the status of the tasks. 
 
 
 ### II. What APIs We Plan to Use
@@ -17,9 +17,6 @@ Using ChatGPT API, we plan to generate financial advice indluding:
 - Debt management advice: Based on a user's debt load, suggest strategies for paying off debt more quickly and efficiently.
 - Retirement planning advice: Based on a user's age and retirement goals, suggest specific retirement savings goals and investment strategies.
 
-#### - Amazon API
-We plan to make a budgeting function for users. By integrating with Amazon's API, we allow users to track their spending on Amazon and set budget limits for their purchases.
-
 
 ### USAGE
 Install the required dependencies:
@@ -30,13 +27,13 @@ Start redis:
 `redis-server`
 
 
-To run the celery application:
+Run the celery application:
 `cd worker`
 
 `celery -A task worker --loglevel=info`
 
 
-To run the flask application:
+Run the flask application:
 `cd app`
 
 `export FLASK_APP=app.py`
